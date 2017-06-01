@@ -1,5 +1,6 @@
 {
   "name": "sync-my-moodle",
+  "productName": "Sync My Moodle",
   "version": "0.1.0",
   "description": "Desktop Syncing Client for Moodle Course Resources",
   "private": true,
