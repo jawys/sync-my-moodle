@@ -6,7 +6,8 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "standard"
   },
   "keywords": [
     "Electron",
@@ -17,6 +18,7 @@
   "author": "Jan Wystub <jan.wystub@hsrw.org>",
   "license": "SEE LICENSE IN LICENSE.md",
   "devDependencies": {
-    "electron": "~1.6.2"
+    "electron": "~1.6.2",
+    "standard": "*"
   }
 }
