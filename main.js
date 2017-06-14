@@ -58,11 +58,14 @@ const request = Request.defaults({
   followAllRedirects: true
 })
 
-const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
+/* globals----------------------------- */
 
-// globals
+const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
 let credentials
 let courses
+let newCoursesCount = 0
+
+/* globals----------------------------- */
 
 function mask (string) {
   return string
@@ -80,9 +83,9 @@ ipc.on('save-credentials', (event, _credentials) => {
   }
 })
 
-ipc.on('get-courses', function (event) {
+ipc.on('update-courses', (event) => {
   // Start time for getting courses
-  console.time('get-courses')
+  console.time('update-courses')
 
   request.post(moodleURL, {form: credentials},
     (err, res, body) => {
@@ -104,45 +107,57 @@ ipc.on('get-courses', function (event) {
             id: href.match(/id=([0-9]+)/)[1]
           }
 
-          request.get(course.url,
-            (err, res, body) => {
-              if (err) { throw err }
-
-              // Init resources array
-              const resources = []
-
-              const $ = cheerio.load(body)
-              $('.generaltable tr[class] .c1 a').each(
-                (i, a) => {
-                  const resourceType = $(a).children('img').attr('alt')
-                  const isFile = ['File', 'Datei'].indexOf(resourceType) !== -1
-
-                  if (isFile) {
-                    const title = $(a).text().trim()
-                    const href = $(a).attr('href')
-                    const id = href.match(/id=([0-9]+)/)[1]
-
-                    resources.push({
-                      title: title,
-                      url: href,
-                      id: id
-                    })
-                  }
-                }
-              )
-              // Add found resources to course
-              course.resources = resources
-            })
-          // Add course to global courses
           courses.push(course)
-          console.log(course)
+          newCoursesCount++
+          ipc.emit('update-course-resources', course)
         }
       )
       // Stop time for getting courses
-      console.timeEnd('get-courses')
+      console.timeEnd('update-courses')
 
-      // Send courses back to renderer
-      event.sender.send('received-courses', courses)
+      /*
+       // Send courses back to renderer
+       event.sender.send('courses-updated', courses)
+       */
     }
   )
+})
+
+ipc.on('update-course-resources', (course) => {
+  // Start time for getting courseResources
+  console.time('update-course-resources')
+
+  request.get(course.url,
+    (err, res, body) => {
+      if (err) { throw err }
+
+      // Init courseResources
+      const courseResources = []
+
+      const $ = cheerio.load(body)
+      $('.generaltable tr[class] .c1 a').each(
+        (i, a) => {
+          const resourceType = $(a).children('img').attr('alt')
+          const isFile = ['File', 'Datei'].indexOf(resourceType) !== -1
+
+          if (isFile) {
+            const title = $(a).text().trim()
+            const href = $(a).attr('href')
+            const id = href.match(/id=([0-9]+)/)[1]
+
+            courseResources.push({
+              title: title,
+              url: href,
+              id: id
+            })
+          }
+        }
+      )
+      // Add found resources to course
+      course.resources = courseResources
+
+      // Add course to global courses
+      // courses.push(course)
+      console.log(courses)
+    })
 })
