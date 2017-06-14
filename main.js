@@ -74,7 +74,7 @@ ipc.on('save-credentials', (event, _credentials) => {
 })
 
 ipc.on('get-courses', function (event) {
-  // Starte Zeit für das holen der Kursliste
+  // Start time for getting courses
   console.time('get-courses')
 
   request.post(moodleURL, {form: credentials},
@@ -84,7 +84,7 @@ ipc.on('get-courses', function (event) {
       console.log('COOKIE', res.headers['set-cookie'])
       // console.log('BODY:', body)
 
-      // reset courses before updating them
+      // Reset courses before updating them
       courses = []
 
       const $ = cheerio.load(body)
@@ -100,10 +100,10 @@ ipc.on('get-courses', function (event) {
           console.log(`COURSE ${i}:`, course)
         }
       )
-      // Stoppe Zeit für das holen der Kursliste
+      // Stop time for getting courses
       console.timeEnd('get-courses')
 
-      console.log('COURSES:', courses)
+      // Send courses back to renderer
       event.sender.send('received-courses', courses)
     }
   )
