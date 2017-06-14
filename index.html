@@ -7,6 +7,7 @@
 
 <body>
   <h1>Demo UI</h1>
+
   <fieldset>
     <legend>Anmeldedaten</legend>
     <input type="text" id="username" placeholder="Benutzername">
@@ -51,7 +52,7 @@
 
   // Lausche auf das Event, wenn die Kursliste aktualisiert wurde
   ipc.on('received-courses', (event, courses) => {
-    document.getElementById('course-list').innerText = courses.toString()
+    document.getElementById('course-list').innerText = courses.map(course => course.title)
   })
 
 
