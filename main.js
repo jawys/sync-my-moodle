@@ -63,15 +63,12 @@ const request = Request.defaults({
 const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
 let credentials
 let courses
-let newCoursesCount = 0
+let courseUpdateCount = 0
 
 /* globals----------------------------- */
 
-function mask (string) {
-  return string
-    .split('')
-    .map((c, i, a) => (i > 0 && i < a.length - 1) ? '*' : c)
-    .join('')
+function mask (str) {
+  return str.charAt(0).concat('*'.repeat(str.length - 2), str.slice(-1))
 }
 
 ipc.on('save-credentials', (event, _credentials) => {
@@ -83,8 +80,9 @@ ipc.on('save-credentials', (event, _credentials) => {
   }
 })
 
-ipc.on('update-courses', (event) => {
-  // Start time for getting courses
+ipc.on('update-courses', () => {
+  // Start time
+  console.time('update-courses-list')
   console.time('update-courses')
 
   request.post(moodleURL, {form: credentials},
@@ -107,25 +105,24 @@ ipc.on('update-courses', (event) => {
             id: href.match(/id=([0-9]+)/)[1]
           }
 
+          // Push course into global courses and update resources by reference
           courses.push(course)
-          newCoursesCount++
+          ++courseUpdateCount
           ipc.emit('update-course-resources', course)
         }
       )
-      // Stop time for getting courses
-      console.timeEnd('update-courses')
+      // Stop time
+      console.timeEnd('update-courses-list')
 
-      /*
-       // Send courses back to renderer
-       event.sender.send('courses-updated', courses)
-       */
+      // Send initial state to get rendered courses list
+      mainWindow.send('courses-updated', courses)
     }
   )
 })
 
 ipc.on('update-course-resources', (course) => {
-  // Start time for getting courseResources
-  console.time('update-course-resources')
+  // Start time
+  console.time(`update-course-resources-${course.title}\n`)
 
   request.get(course.url,
     (err, res, body) => {
@@ -156,8 +153,18 @@ ipc.on('update-course-resources', (course) => {
       // Add found resources to course
       course.resources = courseResources
 
-      // Add course to global courses
-      // courses.push(course)
-      console.log(courses)
+      // Stop time
+      console.timeEnd(`update-course-resources-${course.title}\n`)
+
+      // Update of course finished, so decrement courseUpdateCount
+      --courseUpdateCount
+
+      // Send courses to renderer if all courses had been updated
+      if (courseUpdateCount === 0) {
+        mainWindow.send('courses-updated', courses)
+
+        // Stop time
+        console.timeEnd('update-courses')
+      }
     })
 })
