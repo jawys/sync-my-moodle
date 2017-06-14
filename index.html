@@ -27,15 +27,15 @@
 </body>
 
 <script>
-  // Importiere das ipc-Modul für den Renderer-Prozess
+  // Import the ipc module for the renderer process
   const ipc = require('electron').ipcRenderer
 
-  // Hole die einzelnen Buttons der GUI
+  // Get the UI buttons
   const saveBtn = document.getElementById('save-credentials')
   const coursesBtn = document.getElementById('get-courses')
   const resourcesBtn = document.getElementById('get-resources')
 
-  // Füge den Buttons EventListener hinzu
+  // Add EventListeners to the buttons
   saveBtn.addEventListener('click', () => {
     const username = document.getElementById('username').value
     const password = document.getElementById('password').value
@@ -45,12 +45,11 @@
     }
     ipc.send('save-credentials', credentials)
   })
-
   coursesBtn.addEventListener('click', () => {
     ipc.send('get-courses')
   })
 
-  // Lausche auf das Event, wenn die Kursliste aktualisiert wurde
+  // Update courses in UI after receiving them
   ipc.on('received-courses', (event, courses) => {
     console.log(courses)
     document.getElementById('course-list').innerText = courses.map(course => course.title).join('\n')
