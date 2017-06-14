@@ -52,7 +52,8 @@
 
   // Lausche auf das Event, wenn die Kursliste aktualisiert wurde
   ipc.on('received-courses', (event, courses) => {
-    document.getElementById('course-list').innerText = courses.map(course => course.title)
+    console.log(courses)
+    document.getElementById('course-list').innerText = courses.map(course => course.title).join('\n')
   })
 
 
