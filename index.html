@@ -13,6 +13,20 @@
 </body>
 
 <script>
+  const ipc = require('electron').ipcRenderer
+
+  const coursesBtn = document.getElementById('get-courses')
+  const resourcesBtn = document.getElementById('get-resources')
+
+  coursesBtn.addEventListener('click', () => {
+    ipc.send('get-courses')
+  })
+
+  ipc.on('received-courses', function (event, courses) {
+    document.getElementById('course-list').innerHTML = courses
+  })
+
+
   // You can also require other files to run in this process
   require('./renderer.js')
 </script>
