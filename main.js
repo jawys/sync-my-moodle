@@ -59,8 +59,10 @@ const request = Request.defaults({
 })
 
 const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
+
+// globals
 let credentials
-const courses = []
+let courses
 
 ipc.on('save-credentials', (event, _credentials) => {
   if (_credentials.username === '' || _credentials.password === '') {
@@ -82,13 +84,16 @@ ipc.on('get-courses', function (event) {
       console.log('COOKIE', res.headers['set-cookie'])
       // console.log('BODY:', body)
 
+      // reset courses before updating them
+      courses = []
+
       const $ = cheerio.load(body)
       $('.type_course a').each(
         (i, a) => {
-          const href = $(a).attr('href')
+          const href = $(a).attr('href').replace('/view.php?', '/resources.php?')
           const course = {
-            course: $(a).attr('title'),
-            url: href.replace('/view.php?', '/resources.php?'),
+            title: $(a).attr('title'),
+            url: href,
             id: href.match(/id=([0-9]+)/)[1]
           }
           courses.push(course)
