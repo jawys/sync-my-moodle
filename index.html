@@ -6,8 +6,6 @@
 </head>
 
 <body>
-  <h1>Demo UI</h1>
-
   <fieldset>
     <legend>Anmeldedaten</legend>
     <input type="text" id="username" placeholder="Benutzername">
@@ -16,13 +14,12 @@
   </fieldset>
 
   <p>
-    <button id="get-courses">Hole Kurse</button>
-    <button id="get-resources">Hole Arbeitsmaterial</button>
+    <button id="update-courses">Aktualisiere Kursliste</button>
   </p>
 
   <fieldset>
     <legend>Kurse</legend>
-    <div id="course-list">Hier sollten die Kurse angezeigt werden</div>
+    <div id="course-list"><i>Hier sollten die Kurse angezeigt werden</i></div>
   </fieldset>
 </body>
 
@@ -32,8 +29,7 @@
 
   // Get the UI buttons
   const saveBtn = document.getElementById('save-credentials')
-  const coursesBtn = document.getElementById('get-courses')
-  const resourcesBtn = document.getElementById('get-resources')
+  const coursesBtn = document.getElementById('update-courses')
 
   // Add EventListeners to the buttons
   saveBtn.addEventListener('click', () => {
@@ -46,11 +42,11 @@
     ipc.send('save-credentials', credentials)
   })
   coursesBtn.addEventListener('click', () => {
-    ipc.send('get-courses')
+    ipc.send('update-courses')
   })
 
   // Update courses in UI after receiving them
-  ipc.on('received-courses', (event, courses) => {
+  ipc.on('courses-updated', (event, courses) => {
     console.log(courses)
     document.getElementById('course-list').innerText = courses.map(course => course.title).join('\n')
   })
