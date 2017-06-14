@@ -7,16 +7,40 @@
 
 <body>
   <h1>Demo UI</h1>
-  <button id="get-courses">Hole Kurse</button>
-  <button id="get-resources">Hole Arbeitsmaterial</button>
-  <div id="course-list">Hier sollten die Kurse angezeigt werden</div>
+  <fieldset>
+    <legend>Anmeldedaten</legend>
+    <input type="text" id="username" placeholder="Benutzername">
+    <input type="password" id="password" placeholder="Passwort">
+    <button id="save-credentials">Speichern</button>
+  </fieldset>
+
+  <p>
+    <button id="get-courses">Hole Kurse</button>
+    <button id="get-resources">Hole Arbeitsmaterial</button>
+  </p>
+
+  <fieldset>
+    <legend>Kurse</legend>
+    <div id="course-list">Hier sollten die Kurse angezeigt werden</div>
+  </fieldset>
 </body>
 
 <script>
   const ipc = require('electron').ipcRenderer
 
+  const saveBtn = document.getElementById('save-credentials')
   const coursesBtn = document.getElementById('get-courses')
   const resourcesBtn = document.getElementById('get-resources')
+
+  saveBtn.addEventListener('click', () => {
+    const username = document.getElementById('username').value
+    const password = document.getElementById('password').value
+    const credentials = {
+      username: username,
+      password: password
+    }
+    ipc.send('save-credentials', credentials)
+  })
 
   coursesBtn.addEventListener('click', () => {
     ipc.send('get-courses')
