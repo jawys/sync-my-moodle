@@ -53,16 +53,25 @@ app.on('activate', () => {
 const Request = require('request')
 const cheerio = require('cheerio')
 
-const cookies = Request.jar()
 const request = Request.defaults({
-  jar: cookies,
+  jar: true,
   followAllRedirects: true
 })
 
-let credentials
 const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
+let credentials
+const courses = []
 
-function getCourses (event) {
+ipc.on('save-credentials', (event, _credentials) => {
+  if (_credentials.username === '' || _credentials.password === '') {
+    console.warn('CREDENTIALS INVALID:', _credentials)
+  } else {
+    credentials = _credentials
+    console.info('CREDENTIALS SET:', _credentials.username, _credentials.password.split('').map(function (c, i, a) { return (i > 0 && i < a.length - 1) ? '*' : c }).join(''))
+  }
+})
+
+ipc.on('get-courses', function (event) {
   // Starte Zeit für das holen der Kursliste
   console.time('get-courses')
 
@@ -70,16 +79,11 @@ function getCourses (event) {
     (err, res, body) => {
       if (err) { throw err }
 
-      // console.log('COOKIE', res.headers['set-cookie'])
-      console.log('JAR', cookies)
+      console.log('COOKIE', res.headers['set-cookie'])
       // console.log('BODY:', body)
 
-      let courses = []
-
       const $ = cheerio.load(body)
-      const courseLinks = $('.type_course a')
-      console.log('COURSELINKS:', courseLinks)
-      courseLinks.each(
+      $('.type_course a').each(
         (i, a) => {
           const href = $(a).attr('href')
           const course = {
@@ -98,17 +102,4 @@ function getCourses (event) {
       event.sender.send('received-courses', courses)
     }
   )
-}
-
-ipc.on('save-credentials', (event, _credentials) => {
-  if (_credentials.username === '' || _credentials.password === '') {
-    console.warn('CREDENTIALS INVALID:', _credentials)
-  } else {
-    credentials = _credentials
-    console.info('CREDENTIALS SET:', credentials)
-  }
-})
-
-ipc.on('get-courses', function (event) {
-  getCourses(event)
 })
