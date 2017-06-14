@@ -64,12 +64,19 @@ const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
 let credentials
 let courses
 
+function mask (string) {
+  return string
+    .split('')
+    .map((c, i, a) => (i > 0 && i < a.length - 1) ? '*' : c)
+    .join('')
+}
+
 ipc.on('save-credentials', (event, _credentials) => {
   if (_credentials.username === '' || _credentials.password === '') {
     console.warn('CREDENTIALS INVALID:', _credentials)
   } else {
     credentials = _credentials
-    console.info('CREDENTIALS SET:', _credentials.username, _credentials.password.split('').map(function (c, i, a) { return (i > 0 && i < a.length - 1) ? '*' : c }).join(''))
+    console.info('CREDENTIALS SET:', _credentials.username, mask(_credentials.password))
   }
 })
 
@@ -84,7 +91,7 @@ ipc.on('get-courses', function (event) {
       console.log('COOKIE', res.headers['set-cookie'])
       // console.log('BODY:', body)
 
-      // Reset existing courses before getting them
+      // Reset existing courses before getting new ones
       courses = []
 
       const $ = cheerio.load(body)
@@ -123,14 +130,12 @@ ipc.on('get-courses', function (event) {
                   }
                 }
               )
-
+              // Add found resources to course
               course.resources = resources
-              console.log(course)
-              // ipc.emit('updated-course', course)
             })
-
+          // Add course to global courses
           courses.push(course)
-          // console.log(`COURSE ${i}:`, course)
+          console.log(course)
         }
       )
       // Stop time for getting courses
