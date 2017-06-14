@@ -84,7 +84,7 @@ ipc.on('get-courses', function (event) {
       console.log('COOKIE', res.headers['set-cookie'])
       // console.log('BODY:', body)
 
-      // Reset courses before updating them
+      // Reset existing courses before getting them
       courses = []
 
       const $ = cheerio.load(body)
@@ -96,8 +96,41 @@ ipc.on('get-courses', function (event) {
             url: href,
             id: href.match(/id=([0-9]+)/)[1]
           }
+
+          request.get(course.url,
+            (err, res, body) => {
+              if (err) { throw err }
+
+              // Init resources array
+              const resources = []
+
+              const $ = cheerio.load(body)
+              $('.generaltable tr[class] .c1 a').each(
+                (i, a) => {
+                  const resourceType = $(a).children('img').attr('alt')
+                  const isFile = ['File', 'Datei'].indexOf(resourceType) !== -1
+
+                  if (isFile) {
+                    const title = $(a).text().trim()
+                    const href = $(a).attr('href')
+                    const id = href.match(/id=([0-9]+)/)[1]
+
+                    resources.push({
+                      title: title,
+                      url: href,
+                      id: id
+                    })
+                  }
+                }
+              )
+
+              course.resources = resources
+              console.log(course)
+              // ipc.emit('updated-course', course)
+            })
+
           courses.push(course)
-          console.log(`COURSE ${i}:`, course)
+          // console.log(`COURSE ${i}:`, course)
         }
       )
       // Stop time for getting courses
