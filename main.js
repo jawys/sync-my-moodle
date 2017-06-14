@@ -50,11 +50,65 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipc.on('save-credentials', (event, credentials) => {
-  console.log('credentials:', credentials)
+const Request = require('request')
+const cheerio = require('cheerio')
+
+const cookies = Request.jar()
+const request = Request.defaults({
+  jar: cookies,
+  followAllRedirects: true
+})
+
+let credentials
+const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
+
+function getCourses (event) {
+  // Starte Zeit für das holen der Kursliste
+  console.time('get-courses')
+
+  request.post(moodleURL, {form: credentials},
+    (err, res, body) => {
+      if (err) { throw err }
+
+      // console.log('COOKIE', res.headers['set-cookie'])
+      console.log('JAR', cookies)
+      // console.log('BODY:', body)
+
+      let courses = []
+
+      const $ = cheerio.load(body)
+      const courseLinks = $('.type_course a')
+      console.log('COURSELINKS:', courseLinks)
+      courseLinks.each(
+        (i, a) => {
+          const href = $(a).attr('href')
+          const course = {
+            course: $(a).attr('title'),
+            url: href.replace('/view.php?', '/resources.php?'),
+            id: href.match(/id=([0-9]+)/)[1]
+          }
+          courses.push(course)
+          console.log(`COURSE ${i}:`, course)
+        }
+      )
+      // Stoppe Zeit für das holen der Kursliste
+      console.timeEnd('get-courses')
+
+      console.log('COURSES:', courses)
+      event.sender.send('received-courses', courses)
+    }
+  )
+}
+
+ipc.on('save-credentials', (event, _credentials) => {
+  if (_credentials.username === '' || _credentials.password === '') {
+    console.warn('CREDENTIALS INVALID:', _credentials)
+  } else {
+    credentials = _credentials
+    console.info('CREDENTIALS SET:', credentials)
+  }
 })
 
 ipc.on('get-courses', function (event) {
-
-  event.sender.send('received-courses', courses)
+  getCourses(event)
 })

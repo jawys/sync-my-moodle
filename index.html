@@ -51,12 +51,12 @@
 
   // Lausche auf das Event, wenn die Kursliste aktualisiert wurde
   ipc.on('received-courses', (event, courses) => {
-    document.getElementById('course-list').innerHTML = courses
+    document.getElementById('course-list').innerText = courses.toString()
   })
 
 
   // You can also require other files to run in this process
-  require('./renderer.js')
+//  require('./renderer.js')
 </script>
 
 </html>
