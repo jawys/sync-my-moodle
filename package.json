@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.1",
-    "electron-debug": "^1.1.0",
     "request": "^2.81.0"
   }
 }
