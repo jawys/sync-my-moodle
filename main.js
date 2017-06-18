@@ -2,8 +2,13 @@ const {app, BrowserWindow, dialog} = require('electron')
 const path = require('path')
 const ipc = require('electron').ipcMain
 
-// Open DevTools during development
-require('electron-debug')({showDevTools: 'undocked'})
+// Check if running in development
+const isDev = require('electron-is-dev')
+
+if (isDev) {
+  console.log('Running in development')
+  app.setName('Sync My Moodle')
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -15,6 +20,11 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadURL(path.join('file://', __dirname, 'index.html'))
+
+  // Open DevTools during development
+  if (isDev) {
+    mainWindow.webContents.openDevTools()
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
