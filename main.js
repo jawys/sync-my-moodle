@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, dialog} = require('electron')
 const path = require('path')
 const ipc = require('electron').ipcMain
 
@@ -167,4 +167,19 @@ ipc.on('update-course-resources', (course) => {
         console.timeEnd('update-courses')
       }
     })
+})
+
+const os = require('os')
+
+ipc.on('open-save-dialog', function (event) {
+  const options = {
+    title: 'Speicherverzeichnis wählen',
+    properties: ['openDirectory'],
+    defaultPath: path.join(os.homedir(), 'sync-my-moodle')
+  }
+  dialog.showSaveDialog(options, function (directoryPath) {
+    if (directoryPath) {
+      event.sender.send('selected-directory', directoryPath)
+    }
+  })
 })

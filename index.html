@@ -14,6 +14,11 @@
   </fieldset>
 
   <p>
+    <button id="select-directory">Speicherverzeichnis wählen</button><br>
+    <span id="selected-directory"></span>
+  </p>
+
+  <p>
     <button id="update-courses">Aktualisiere Kursliste</button>
   </p>
 
@@ -32,6 +37,7 @@
   // Get the UI buttons
   const saveBtn = document.getElementById('save-credentials')
   const coursesBtn = document.getElementById('update-courses')
+  const selectDirBtn = document.getElementById('select-directory')
 
   // Add EventListeners to the buttons
   saveBtn.addEventListener('click', () => {
@@ -45,6 +51,9 @@
   })
   coursesBtn.addEventListener('click', () => {
     ipc.send('update-courses')
+  })
+  selectDirBtn.addEventListener('click', () => {
+    ipc.send('open-save-dialog')
   })
 
   // Update courses in UI after receiving them
@@ -114,6 +123,11 @@
         }
       }
     }
+  })
+
+  // Show selected directory
+  ipc.on('selected-directory', function (event, path) {
+    document.getElementById('selected-directory').innerText = `Speicherverzeichnis: ${path}`
   })
 </script>
 
