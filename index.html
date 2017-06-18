@@ -15,11 +15,6 @@
   </fieldset>
 
   <p>
-    <button id="select-directory">Speicherverzeichnis wählen</button><br>
-    <span id="selected-directory"></span>
-  </p>
-
-  <p>
     <button id="update-courses">Aktualisiere Kursliste</button>
   </p>
 
@@ -29,6 +24,11 @@
       <i>Sobald aktualisiert wurde, werden hier die Kurse angezeigt…</i>
     </div>
   </fieldset>
+  <p>
+    <button id="select-directory">Speicherverzeichnis wählen</button>
+    <span id="selected-directory"></span>
+    <button id="download" hidden>Download</button>
+  </p>
 </body>
 
 <script>
@@ -39,6 +39,7 @@
   const saveBtn = document.getElementById('save-credentials')
   const coursesBtn = document.getElementById('update-courses')
   const selectDirBtn = document.getElementById('select-directory')
+  const downloadBtn = document.getElementById('download')
 
   // Add EventListeners to the buttons
   saveBtn.addEventListener('click', () => {
@@ -128,6 +129,8 @@
 
   // Show selected directory
   ipc.on('selected-directory', function (event, path) {
+    selectDirBtn.hidden = true
+    downloadBtn.hidden = false
     document.getElementById('selected-directory').innerText = `Speicherverzeichnis: ${path}`
   })
 </script>
