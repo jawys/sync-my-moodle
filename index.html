@@ -18,8 +18,10 @@
   </p>
 
   <fieldset>
-    <legend>Kurse</legend>
-    <div id="course-list"><i>Hier sollten die Kurse angezeigt werden</i></div>
+    <legend>Kursliste</legend>
+    <div id="courses">
+      <i>Sobald aktualisiert wurde, werden hier die Kurse angezeigt…</i>
+    </div>
   </fieldset>
 </body>
 
@@ -47,13 +49,46 @@
 
   // Update courses in UI after receiving them
   ipc.on('courses-updated', (event, courses) => {
-    console.log(courses)
-    document.getElementById('course-list').innerText = courses.map(course => course.title).join('\n')
+    console.log('courses:', courses)
+    const fieldsetCourses = document.getElementById('courses')
+    fieldsetCourses.innerText = ''
+
+    for (const course of courses) {
+      const detailsCourse = document.createElement('details')
+      const summaryCourse = document.createElement('summary')
+      const checkboxCourse = document.createElement('input')
+      const spanCourse = document.createElement('span')
+      const ddCourse = document.createElement('dd')
+
+      detailsCourse.id = `course-${course.id}`
+      checkboxCourse.type = 'checkbox'
+      spanCourse.innerText = course.title
+
+      fieldsetCourses.appendChild(detailsCourse)
+      detailsCourse.appendChild(summaryCourse)
+      summaryCourse.appendChild(checkboxCourse)
+      summaryCourse.appendChild(spanCourse)
+      detailsCourse.appendChild(ddCourse)
+
+      if (course.resources.length === 0) {
+        ddCourse.innerText = '(leer)'
+      } else {
+        for (const resource of course.resources) {
+          const summaryResource = document.createElement('summary')
+          const checkboxResource = document.createElement('input')
+          const spanResource = document.createElement('span')
+
+          summaryResource.id = `resource-${resource.id}`
+          checkboxResource.type = 'checkbox'
+          spanResource.innerText = resource.title
+
+          ddCourse.appendChild(summaryResource)
+          summaryResource.appendChild(checkboxResource)
+          summaryResource.appendChild(spanResource)
+        }
+      }
+    }
   })
-
-
-  // You can also require other files to run in this process
-//  require('./renderer.js')
 </script>
 
 </html>
