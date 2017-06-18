@@ -1,4 +1,22 @@
 #select-directory,
-#selected-directory {
+#download {
     float: right;
+}
+
+fieldset:last-of-type {
+    height: 370px;
+    padding: 0 0 6px 6px;
+}
+
+#courses {
+    height: 360px;
+    overflow-y: auto;
+}
+
+fieldset:first-of-type {
+    padding: 2px 6px 6px 6px;
+}
+
+p {
+    margin: 6px;
 }
