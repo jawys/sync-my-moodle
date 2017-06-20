@@ -198,3 +198,8 @@ ipc.on('open-save-dialog', (event) => {
     }
   })
 })
+
+// Handle downloading of resources
+ipc.on('download-resource', (event, resourceID) => {
+  console.log('time:', new Date(), 'resourceID:', resourceID)
+})

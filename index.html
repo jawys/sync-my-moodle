@@ -55,6 +55,12 @@
     ipc.send('open-save-dialog')
   })
 
+  downloadBtn.addEventListener('click', () => {
+    for (let checkbox of courses.querySelectorAll('[data-resource-id] :checked')) {
+      ipc.send('download-resource', checkbox.parentElement.dataset.resourceId)
+    }
+  })
+
   // Update courses in UI after receiving them
   ipc.on('courses-updated', (event, courses) => {
     console.log('courses:', courses)
