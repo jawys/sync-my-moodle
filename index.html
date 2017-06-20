@@ -56,74 +56,12 @@
       <div class="row">
         <div class="card ">
           <div class="header">
-            <h4 class="title">Kursliste</h4>
-            <!--<p class="category">[Denis Paris]</p>-->
+            <h4 class="title"><i class="fa fa-list-alt" aria-hidden="true"></i> Kursliste</h4>
+            <!--<p class="category">[Name Des Nutzers]</p>-->
           </div>
-          <div class="content">
-            <div class="table-full-width">
-              <table class="table" id="courses">
-                <tbody>
-                <tr>
-                  <td>
-                    <label class="checkbox">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox">
-                    </label>
-                  </td>
-                  <td>Fablab</td>
+          <div class="content" >
 
-                </tr>
-                <tr>
-                  <td>
-                    <label class="checkbox checked">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox" checked="">
-                    </label>
-                  </td>
-                  <td>Webentwicklung</td>
-
-                </tr>
-                <tr>
-                  <td>
-                    <label class="checkbox checked">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox" checked="">
-                    </label>
-                  </td>
-                  <td>MK_1.06 Einführung in das wissenschaftliche Arbeiten, WS 2016/17
-                  </td>
-
-                </tr>
-                <tr>
-                  <td>
-                    <label class="checkbox">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox">
-                    </label>
-                  </td>
-                  <td>Fortgeschrittene Programmierung
-                  </td>
-
-                </tr>
-                <tr>
-                  <td>
-                    <label class="checkbox">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox">
-                    </label>
-                  </td>
-                  <td>MK_4.02 Software Engineering, SS2017
-                  </td>
-
-                </tr>
-                <tr>
-                  <td>
-                    <label class="checkbox">
-                      <span class="icons"><span class="first-icon fa fa-square-o"></span><span class="second-icon fa fa-check-square-o"></span></span><input type="checkbox" value="" data-toggle="checkbox">
-                    </label>
-                  </td>
-                  <td>Abschlussarbeiten Leitfäden und Informationen/ Thesis Manuals and Information
-                  </td>
-
-                </tr>
-                </tbody>
-              </table>
-            </div>
+           <div id="courses"></div>
 
             <div class="footer">
               <hr>
@@ -202,18 +140,24 @@
 
         if (courseElem === null) {
             courseElem = document.createElement('details')
+            $(courseElem).addClass("p-1")
             const summary = document.createElement('summary')
+            const labelCb =  document.createElement('label')
             const checkbox = document.createElement('input')
             const span = document.createElement('span')
             const dd = document.createElement('dd')
-
+            $(dd).addClass('p-1')
             courseElem.dataset.courseId = course.id
             checkbox.type = 'checkbox'
             span.innerText = course.title
 
+            $(summary).css('display', 'flex')
+            $(labelCb).addClass('checkbox')
+            $(labelCb).html("<span class='icons'><span class='first-icon fa fa-square-o'></span><span class='second-icon fa fa-check-square-o'></span></span><span class='icons'><span class='first-icon fa fa-square-o'></span><span class='second-icon fa fa-check-square-o'></span></span>")
+            labelCb.appendChild(checkbox)
             coursesDiv.appendChild(courseElem)
             courseElem.appendChild(summary)
-            summary.appendChild(checkbox)
+            summary.appendChild(labelCb)
             summary.appendChild(span)
             courseElem.appendChild(dd)
 
@@ -228,14 +172,21 @@
         const resourcesElem = courseElem.lastChild
 
         if (course.resources === undefined) {
-            resourcesElem.innerText = 'lädt…'
+            resourcesElem.innerHTML = '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i> lädt…'
         } else if (course.resources.length === 0) {
-            resourcesElem.innerText = '(leer)'
+            resourcesElem.innerHTML = '<i class="fa fa-meh-o" aria-hidden="true"></i> (leer)'
         } else {
             resourcesElem.innerText = ''
             for (const resource of course.resources) {
                 const summary = document.createElement('summary')
+                const labelCb =  document.createElement('label')
                 const checkbox = document.createElement('input')
+
+                $(summary).css('display', 'flex')
+                $(labelCb).addClass('checkbox')
+                $(labelCb).html("<span class='icons'><span class='first-icon fa fa-square-o'></span><span class='second-icon fa fa-check-square-o'></span></span><span class='icons'><span class='first-icon fa fa-square-o'></span><span class='second-icon fa fa-check-square-o'></span></span>")
+
+                labelCb.appendChild(checkbox)
                 const span = document.createElement('span')
 
                 summary.dataset.resourceId = resource.id
@@ -243,7 +194,7 @@
                 span.innerText = resource.title
 
                 resourcesElem.appendChild(summary)
-                summary.appendChild(checkbox)
+                summary.appendChild(labelCb)
                 summary.appendChild(span)
 
                 checkbox.addEventListener('click', function updateParentCheckbox () {
