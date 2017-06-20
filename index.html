@@ -3,19 +3,139 @@
 
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="index.css" type="text/css">
 </head>
 
 <body>
-  <h1>Hello World!</h1>
-  <!-- All of the Node.js APIs are available in this renderer process. -->
-  We are using Node.js <script>document.write(process.versions.node)</script>,
-  Chromium <script>document.write(process.versions.chrome)</script>,
-  and Electron <script>document.write(process.versions.electron)</script>.
+  <fieldset>
+    <legend>Anmeldedaten</legend>
+    <input type="text" id="username" placeholder="Benutzername">
+    <input type="password" id="password" placeholder="Passwort">
+    <button id="save-credentials">Speichern</button>
+    <button id="update-courses">Kursliste aktualisieren</button>
+  </fieldset>
+  <p></p>
+  <fieldset>
+    <legend>Kursliste</legend>
+    <div id="courses"></div>
+  </fieldset>
+  <p>
+    <button id="select-directory">Speicherverzeichnis wählen</button>
+    <span id="selected-directory"></span>
+    <button id="download" hidden>Download</button>
+  </p>
 </body>
 
 <script>
-  // You can also require other files to run in this process
-  require('./renderer.js')
+  // Import the ipc module for the renderer process
+  const ipc = require('electron').ipcRenderer
+
+  // Get the UI buttons
+  const saveBtn = document.getElementById('save-credentials')
+  const coursesBtn = document.getElementById('update-courses')
+  const selectDirBtn = document.getElementById('select-directory')
+  const downloadBtn = document.getElementById('download')
+
+  // Add EventListeners to the buttons
+  saveBtn.addEventListener('click', () => {
+    const username = document.getElementById('username').value
+    const password = document.getElementById('password').value
+    const credentials = {
+      username: username,
+      password: password
+    }
+    ipc.send('save-credentials', credentials)
+  })
+
+  coursesBtn.addEventListener('click', () => {
+    ipc.send('update-courses')
+  })
+
+  selectDirBtn.addEventListener('click', () => {
+    ipc.send('open-save-dialog')
+  })
+
+  downloadBtn.addEventListener('click', () => {
+    for (let checkbox of courses.querySelectorAll('[data-resource-id] :checked')) {
+      ipc.send('download-resource', checkbox.parentElement.dataset.resourceId)
+    }
+  })
+
+  // Update courses in UI after receiving them
+  ipc.on('courses-updated', (event, courses) => {
+    console.log('courses:', courses)
+    const coursesDiv = document.querySelector('#courses')
+
+    for (const course of courses) {
+      let courseElem = coursesDiv.querySelector(`[data-course-id="${course.id}"]`)
+
+      if (courseElem === null) {
+        courseElem = document.createElement('details')
+        const summary = document.createElement('summary')
+        const checkbox = document.createElement('input')
+        const span = document.createElement('span')
+        const dd = document.createElement('dd')
+
+        courseElem.dataset.courseId = course.id
+        checkbox.type = 'checkbox'
+        span.innerText = course.title
+
+        coursesDiv.appendChild(courseElem)
+        courseElem.appendChild(summary)
+        summary.appendChild(checkbox)
+        summary.appendChild(span)
+        courseElem.appendChild(dd)
+
+        checkbox.addEventListener('click', function updateChildCheckboxes () {
+          const checkState = this.checked
+          for (const checkbox of dd.querySelectorAll('[type=checkbox]')) {
+            checkbox.checked = checkState
+          }
+        })
+      }
+      // Reserve last child of course element for resources
+      const resourcesElem = courseElem.lastChild
+
+      if (course.resources === undefined) {
+        resourcesElem.innerText = 'lädt…'
+      } else if (course.resources.length === 0) {
+        resourcesElem.innerText = '(leer)'
+      } else {
+        resourcesElem.innerText = ''
+        for (const resource of course.resources) {
+          const summary = document.createElement('summary')
+          const checkbox = document.createElement('input')
+          const span = document.createElement('span')
+
+          summary.dataset.resourceId = resource.id
+          checkbox.type = 'checkbox'
+          span.innerText = resource.title
+
+          resourcesElem.appendChild(summary)
+          summary.appendChild(checkbox)
+          summary.appendChild(span)
+
+          checkbox.addEventListener('click', function updateParentCheckbox () {
+            let checkState = this.checked
+            for (const checkbox of resourcesElem.querySelectorAll('[type=checkbox]')) {
+              if (checkState !== checkbox.checked) {
+                checkState = false
+              }
+            }
+            courseElem.querySelector('[type=checkbox]').checked = checkState
+          })
+          }
+        }
+      }
+    }
+  )
+
+  // Show selected directory
+  ipc.on('selected-directory', (event, path) => {
+    selectDirBtn.hidden = true
+    downloadBtn.hidden = false
+    document.getElementById('selected-directory').innerText = `Speicherverzeichnis: ${path}`
+  })
 </script>
 
 </html>

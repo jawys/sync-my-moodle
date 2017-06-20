@@ -18,7 +18,12 @@
   "author": "Jan Wystub <jan.wystub@hsrw.org>",
   "license": "SEE LICENSE IN LICENSE.md",
   "devDependencies": {
-    "electron": "~1.6.2",
+    "electron": "~1.6.11",
     "standard": "*"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.1",
+    "electron-is-dev": "^0.1.2",
+    "request": "^2.81.0"
   }
 }

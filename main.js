@@ -1,5 +1,14 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, dialog} = require('electron')
 const path = require('path')
+const ipc = require('electron').ipcMain
+
+// Check if running in development
+const isDev = require('electron-is-dev')
+
+if (isDev) {
+  console.log('Running in development')
+  app.setName(require('./package').productName)
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -10,10 +19,12 @@ function createWindow () {
   mainWindow = new BrowserWindow({width: 600, height: 500})
 
   // and load the index.html of the app.
-  mainWindow.loadURL(path.join('file:', __dirname, 'index.html'))
+  mainWindow.loadURL(path.join('file://', __dirname, 'index.html'))
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // Open DevTools during development
+  if (isDev) {
+    mainWindow.webContents.openDevTools()
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
@@ -48,3 +59,147 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+const Request = require('request')
+const cheerio = require('cheerio')
+
+const request = Request.defaults({
+  jar: true,
+  followAllRedirects: true
+})
+
+/* globals----------------------------- */
+
+const moodleURL = 'https://moodle.hochschule-rhein-waal.de/login/index.php'
+let credentials
+let courses
+let courseUpdateCount = 0
+
+/* globals----------------------------- */
+
+function mask (str) {
+  return str.charAt(0).concat('*'.repeat(str.length - 2), str.slice(-1))
+}
+
+ipc.on('save-credentials', (event, _credentials) => {
+  if (_credentials.username === '' || _credentials.password === '') {
+    console.warn('CREDENTIALS INVALID:', _credentials)
+  } else {
+    credentials = _credentials
+    console.info('CREDENTIALS SET:', _credentials.username, mask(_credentials.password))
+  }
+})
+
+ipc.on('update-courses', () => {
+  // Start time
+  console.time('update-courses-list')
+  console.time('update-courses')
+
+  request.post(moodleURL, {form: credentials},
+    (err, res, body) => {
+      if (err) { throw err }
+
+      console.log('COOKIE', res.headers['set-cookie'])
+      // console.log('BODY:', body)
+
+      // Reset existing courses before getting new ones
+      courses = []
+
+      const $ = cheerio.load(body)
+      $('.type_course a').each(
+        (i, a) => {
+          const href = $(a).attr('href').replace('/view.php?', '/resources.php?')
+          const course = {
+            title: $(a).attr('title'),
+            url: href,
+            id: href.match(/id=([0-9]+)/)[1]
+          }
+
+          // Push course into global courses and update resources by reference
+          courses.push(course)
+          ++courseUpdateCount
+          ipc.emit('update-course-resources', course)
+        }
+      )
+      // Stop time
+      console.timeEnd('update-courses-list')
+
+      // Send initial state to get rendered courses list
+      mainWindow.send('courses-updated', courses)
+    }
+  )
+})
+
+ipc.on('update-course-resources', (course) => {
+  // Start time
+  console.time(`update-course-resources-${course.title}\n`)
+
+  request.get(course.url,
+    (err, res, body) => {
+      if (err) { throw err }
+
+      // Init courseResources
+      const courseResources = []
+
+      const $ = cheerio.load(body)
+      $('.generaltable tr[class] .c1 a').each(
+        (i, a) => {
+          const resourceType = $(a).children('img').attr('alt')
+          const isFile = ['File', 'Datei'].indexOf(resourceType) !== -1
+
+          if (isFile) {
+            const title = $(a).text().trim()
+            const href = $(a).attr('href')
+            const id = href.match(/id=([0-9]+)/)[1]
+
+            courseResources.push({
+              title: title,
+              url: href,
+              id: id
+            })
+          }
+        }
+      )
+      // Add found resources to course
+      course.resources = courseResources
+
+      // Stop time
+      console.timeEnd(`update-course-resources-${course.title}\n`)
+
+      // Update of course finished, so decrement courseUpdateCount
+      --courseUpdateCount
+
+      // Send courses to renderer if all courses had been updated
+      if (courseUpdateCount === 0) {
+        mainWindow.send('courses-updated', courses)
+
+        // Stop time
+        console.timeEnd('update-courses')
+      }
+    })
+})
+
+// Open SaveDialog with defaultPath
+ipc.on('open-save-dialog', (event) => {
+  // Set default path to productName without spaces
+  const defaultPath = path.join(
+    require('os').homedir(),
+    app.getName().replace(/\s/g, '')
+  )
+  // Set options for SaveDialog
+  const options = {
+    title: 'Speicherverzeichnis wählen',
+    properties: ['openDirectory'],
+    defaultPath: defaultPath
+  }
+  dialog.showSaveDialog(options, function (directoryPath) {
+    if (directoryPath) {
+      event.sender.send('selected-directory', directoryPath)
+    }
+  })
+})
+
+// Handle downloading of resources
+ipc.on('download-resource', (event, resourceID) => {
+  console.log('time:', new Date(), 'resourceID:', resourceID)
+})
