@@ -46,9 +46,11 @@
     }
     ipc.send('save-credentials', credentials)
   })
+
   coursesBtn.addEventListener('click', () => {
     ipc.send('update-courses')
   })
+
   selectDirBtn.addEventListener('click', () => {
     ipc.send('open-save-dialog')
   })
@@ -56,74 +58,74 @@
   // Update courses in UI after receiving them
   ipc.on('courses-updated', (event, courses) => {
     console.log('courses:', courses)
-    const divCourses = document.getElementById('courses')
+    const coursesDiv = document.querySelector('#courses')
 
     for (const course of courses) {
-      const idCourse = `course-${course.id}`
-      let detailsCourse = document.getElementById(idCourse)
+      let courseElem = coursesDiv.querySelector(`[data-course-id="${course.id}"]`)
 
-      if (detailsCourse === null) {
-        detailsCourse = document.createElement('details')
-        const summaryCourse = document.createElement('summary')
-        const checkboxCourse = document.createElement('input')
-        const spanCourse = document.createElement('span')
-        const ddCourse = document.createElement('dd')
+      if (courseElem === null) {
+        courseElem = document.createElement('details')
+        const summary = document.createElement('summary')
+        const checkbox = document.createElement('input')
+        const span = document.createElement('span')
+        const dd = document.createElement('dd')
 
-        detailsCourse.id = idCourse
-        checkboxCourse.type = 'checkbox'
-        spanCourse.innerText = course.title
+        courseElem.dataset.courseId = course.id
+        checkbox.type = 'checkbox'
+        span.innerText = course.title
 
-        divCourses.appendChild(detailsCourse)
-        detailsCourse.appendChild(summaryCourse)
-        summaryCourse.appendChild(checkboxCourse)
-        summaryCourse.appendChild(spanCourse)
-        detailsCourse.appendChild(ddCourse)
+        coursesDiv.appendChild(courseElem)
+        courseElem.appendChild(summary)
+        summary.appendChild(checkbox)
+        summary.appendChild(span)
+        courseElem.appendChild(dd)
 
-        checkboxCourse.onclick = function updateChildCheckboxes () {
+        checkbox.addEventListener('click', function updateChildCheckboxes () {
           const checkState = this.checked
-          for (const checkbox of ddCourse.querySelectorAll('input[type=checkbox]')) {
+          for (const checkbox of dd.querySelectorAll('[type=checkbox]')) {
             checkbox.checked = checkState
           }
-        }
+        })
       }
-
-      const ddCourse = detailsCourse.lastChild
+      // Reserve last child of course element for resources
+      const resourcesElem = courseElem.lastChild
 
       if (course.resources === undefined) {
-        ddCourse.innerText = 'lädt…'
+        resourcesElem.innerText = 'lädt…'
       } else if (course.resources.length === 0) {
-        ddCourse.innerText = '(leer)'
+        resourcesElem.innerText = '(leer)'
       } else {
-        ddCourse.innerText = ''
+        resourcesElem.innerText = ''
         for (const resource of course.resources) {
-          const summaryResource = document.createElement('summary')
-          const checkboxResource = document.createElement('input')
-          const spanResource = document.createElement('span')
+          const summary = document.createElement('summary')
+          const checkbox = document.createElement('input')
+          const span = document.createElement('span')
 
-          summaryResource.id = `resource-${resource.id}`
-          checkboxResource.type = 'checkbox'
-          spanResource.innerText = resource.title
+          summary.dataset.resourceId = resource.id
+          checkbox.type = 'checkbox'
+          span.innerText = resource.title
 
-          ddCourse.appendChild(summaryResource)
-          summaryResource.appendChild(checkboxResource)
-          summaryResource.appendChild(spanResource)
+          resourcesElem.appendChild(summary)
+          summary.appendChild(checkbox)
+          summary.appendChild(span)
 
-          checkboxResource.onclick = function updateParentCheckbox () {
+          checkbox.addEventListener('click', function updateParentCheckbox () {
             let checkState = this.checked
-            for (const checkbox of ddCourse.querySelectorAll('input[type=checkbox]')) {
+            for (const checkbox of resourcesElem.querySelectorAll('[type=checkbox]')) {
               if (checkState !== checkbox.checked) {
                 checkState = false
               }
             }
-            detailsCourse.querySelector('input').checked = checkState
+            courseElem.querySelector('[type=checkbox]').checked = checkState
+          })
           }
         }
       }
     }
-  })
+  )
 
   // Show selected directory
-  ipc.on('selected-directory', function (event, path) {
+  ipc.on('selected-directory', (event, path) => {
     selectDirBtn.hidden = true
     downloadBtn.hidden = false
     document.getElementById('selected-directory').innerText = `Speicherverzeichnis: ${path}`
