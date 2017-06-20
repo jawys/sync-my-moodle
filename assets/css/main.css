@@ -1,0 +1,9 @@
+/*@import "../../index.css";*/
+.card {
+  flex: 1;
+  padding: 2vw;
+  margin: 2vw; }
+  .card td {
+    padding-left: 0 !important; }
+
+/*# sourceMappingURL=main.css.map */
