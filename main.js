@@ -7,7 +7,7 @@ const isDev = require('electron-is-dev')
 
 if (isDev) {
   console.log('Running in development')
-  app.setName('Sync My Moodle')
+  app.setName(require('./package').productName)
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -179,13 +179,18 @@ ipc.on('update-course-resources', (course) => {
     })
 })
 
-const os = require('os')
-
-ipc.on('open-save-dialog', function (event) {
+// Open SaveDialog with defaultPath
+ipc.on('open-save-dialog', (event) => {
+  // Set default path to productName without spaces
+  const defaultPath = path.join(
+    require('os').homedir(),
+    app.getName().replace(/\s/g, '')
+  )
+  // Set options for SaveDialog
   const options = {
     title: 'Speicherverzeichnis wählen',
     properties: ['openDirectory'],
-    defaultPath: path.join(os.homedir(), 'sync-my-moodle')
+    defaultPath: defaultPath
   }
   dialog.showSaveDialog(options, function (directoryPath) {
     if (directoryPath) {
