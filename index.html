@@ -55,6 +55,7 @@
     <div class="container-fluid">
       <div class="row">
         <div class="card ">
+          <h2>Pull My Moodle</h2>
           <div class="header">
             <h4 class="title"><i class="fa fa-list-alt" aria-hidden="true"></i> Kursliste</h4>
             <!--<p class="category">[Name Des Nutzers]</p>-->
@@ -114,6 +115,7 @@
             password: password
         }
         ipc.send('save-credentials', credentials)
+        $("#loginModal").modal('toggle')
     })
 
     coursesBtn.addEventListener('click', () => {
