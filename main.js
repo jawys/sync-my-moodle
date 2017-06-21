@@ -63,8 +63,9 @@ app.on('activate', () => {
 const Request = require('request')
 const cheerio = require('cheerio')
 
+const jar = Request.jar()
 const request = Request.defaults({
-  jar: true,
+  jar: jar,
   followAllRedirects: true
 })
 
@@ -99,14 +100,14 @@ ipc.on('update-courses', () => {
     (err, res, body) => {
       if (err) { throw err }
 
-      console.log('COOKIE', res.headers['set-cookie'])
+      console.log('COOKIES:', jar._jar.store.idx)
       // console.log('BODY:', body)
 
       // Reset existing courses before getting new ones
       courses = []
 
       const $ = cheerio.load(body)
-      $('.type_course a').each(
+      $('.course_title a').each(
         (i, a) => {
           const href = $(a).attr('href').replace('/view.php?', '/resources.php?')
           const course = {
