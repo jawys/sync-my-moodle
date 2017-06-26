@@ -223,9 +223,9 @@ function getResourceFromCourseById (course, resourceId) {
 }
 
 // Handle downloading of resources
-ipc.on('download-resource', (event, courseId, resourceId) => {
-  let course = getCourseById(courseId)
-  let resource = getResourceFromCourseById(course, resourceId)
+ipc.on('download-resource', (event, data) => {
+  let course = getCourseById(data.courseId)
+  let resource = getResourceFromCourseById(course, data.resourceId)
   let dlPath = path.join(downloadPath, course.title)
 
   fs.mkdir(dlPath, (err) => {
