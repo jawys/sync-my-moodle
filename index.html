@@ -57,7 +57,9 @@
 
   downloadBtn.addEventListener('click', () => {
     for (let checkbox of courses.querySelectorAll('[data-resource-id] :checked')) {
-      ipc.send('download-resource', checkbox.parentElement.dataset.resourceId)
+      const courseID = checkbox.parentNode.parentNode.parentNode.dataset.courseId
+      const resourceID = checkbox.parentNode.dataset.resourceId
+      ipc.send('download-resource', courseID, resourceID)
     }
   })
 
