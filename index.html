@@ -11,8 +11,7 @@
     <legend>Anmeldedaten</legend>
     <input type="text" id="username" placeholder="Benutzername">
     <input type="password" id="password" placeholder="Passwort">
-    <button id="save-credentials">Speichern</button>
-    <button id="update-courses">Kursliste aktualisieren</button>
+    <button id="save-credentials">Speichern und Kursliste aktualisieren</button>
   </fieldset>
   <p></p>
   <fieldset>
@@ -32,7 +31,6 @@
 
   // Get the UI buttons
   const saveBtn = document.getElementById('save-credentials')
-  const coursesBtn = document.getElementById('update-courses')
   const selectDirBtn = document.getElementById('select-directory')
   const downloadBtn = document.getElementById('download')
 
@@ -45,9 +43,6 @@
       password: password
     }
     ipc.send('save-credentials', credentials)
-  })
-
-  coursesBtn.addEventListener('click', () => {
     ipc.send('update-courses')
   })
 
