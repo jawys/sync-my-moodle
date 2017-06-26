@@ -56,10 +56,8 @@
   })
 
   downloadBtn.addEventListener('click', () => {
-    for (let checkbox of courses.querySelectorAll('[data-resource-id] :checked')) {
-      const courseID = checkbox.parentNode.parentNode.parentNode.dataset.courseId
-      const resourceID = checkbox.parentNode.dataset.resourceId
-      ipc.send('download-resource', courseID, resourceID)
+    for (let checkbox of courses.querySelectorAll('[data-resource-id]:checked')) {
+      ipc.send('download-resource', checkbox.dataset)
     }
   })
 
@@ -108,14 +106,17 @@
           const summary = document.createElement('summary')
           const checkbox = document.createElement('input')
           const span = document.createElement('span')
+          const label = document.createElement('label')
 
-          summary.dataset.resourceId = resource.id
+          checkbox.dataset.courseId = course.id
+          checkbox.dataset.resourceId = resource.id
           checkbox.type = 'checkbox'
           span.innerText = resource.title
 
           resourcesElem.appendChild(summary)
-          summary.appendChild(checkbox)
-          summary.appendChild(span)
+          summary.appendChild(label)
+          label.appendChild(checkbox)
+          label.appendChild(span)
 
           checkbox.addEventListener('click', function updateParentCheckbox () {
             let checkState = this.checked
