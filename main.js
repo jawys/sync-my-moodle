@@ -100,7 +100,7 @@ ipc.on('update-courses', () => {
     (err, res, body) => {
       if (err) { throw err }
 
-      console.log('COOKIES:', jar._jar.store.idx)
+      console.log('COOKIES:', jar.getCookies(moodleURL))
       // console.log('BODY:', body)
 
       // Reset existing courses before getting new ones
@@ -133,7 +133,7 @@ ipc.on('update-courses', () => {
 
 ipc.on('update-course-resources', (course) => {
   // Start time
-  console.time(`update-course-resources-${course.title}\n`)
+  console.time(course.title)
 
   request.get(course.url,
     (err, res, body) => {
@@ -165,7 +165,7 @@ ipc.on('update-course-resources', (course) => {
       course.resources = courseResources
 
       // Stop time
-      console.timeEnd(`update-course-resources-${course.title}\n`)
+      console.timeEnd(course.title)
 
       // Update of course finished, so decrement courseUpdateCount
       --courseUpdateCount
