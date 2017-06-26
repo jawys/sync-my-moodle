@@ -184,18 +184,20 @@ ipc.on('update-course-resources', (course) => {
 ipc.on('open-save-dialog', (event) => {
   // Set default path to productName without spaces
   const defaultPath = path.join(
-    require('os').homedir(),
+    app.getPath('home'),
     app.getName().replace(/\s/g, '')
   )
   // Set options for SaveDialog
   const options = {
     title: 'Speicherverzeichnis wählen',
-    properties: ['openDirectory'],
+    properties: ['openDirectory', 'createDirectory'],
     defaultPath: defaultPath
   }
-  dialog.showSaveDialog(options, function (directoryPath) {
-    if (directoryPath) {
-      event.sender.send('selected-directory', directoryPath)
+  dialog.showOpenDialog(mainWindow, options, (filePaths) => {
+    if (filePaths) {
+      console.log(filePaths)
+      const folderPath = filePaths[0]
+      event.sender.send('selected-directory', folderPath)
     }
   })
 })
