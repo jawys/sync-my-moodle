@@ -1,6 +1,7 @@
 const {app, BrowserWindow, dialog} = require('electron')
 const path = require('path')
 const ipc = require('electron').ipcMain
+const fs = require('fs')
 
 // Check if running in development
 const isDev = require('electron-is-dev')
@@ -180,6 +181,8 @@ ipc.on('update-course-resources', (course) => {
     })
 })
 
+let downloadPath
+
 // Open SaveDialog with defaultPath
 ipc.on('open-save-dialog', (event) => {
   // Set default path to productName without spaces
@@ -198,11 +201,49 @@ ipc.on('open-save-dialog', (event) => {
       console.log(filePaths)
       const folderPath = filePaths[0]
       event.sender.send('selected-directory', folderPath)
+      downloadPath = folderPath
     }
   })
 })
 
+function getCourseById (courseId) {
+  for (let course of courses) {
+    if (course.id === courseId) {
+      return course
+    }
+  }
+}
+
+function getResourceFromCourseById (course, resourceId) {
+  for (let resource of course.resources) {
+    if (resource.id === resourceId) {
+      return resource
+    }
+  }
+}
+
 // Handle downloading of resources
-ipc.on('download-resource', (event, resourceID) => {
-  console.log('time:', new Date(), 'resourceID:', resourceID)
+ipc.on('download-resource', (event, courseId, resourceId) => {
+  let course = getCourseById(courseId)
+  let resource = getResourceFromCourseById(course, resourceId)
+  let dlPath = path.join(downloadPath, course.title)
+
+  fs.mkdir(dlPath, (err) => {
+    if (err) {
+      if (err.code === 'EEXIST') {
+        console.info('Folder already exists:', dlPath)
+      } else {
+        throw err
+      }
+    }
+
+    request(resource.url)
+      .on('response', (res) => {
+        // TODO: Handle existing file regarding 'last-modified' date
+        const filename = res.headers['content-disposition'].match(/filename="(.+)"/)[1]
+        dlPath = path.join(dlPath, filename)
+        console.log('filename:', filename, '\ndlpath:', dlPath)
+        res.pipe(fs.createWriteStream(dlPath))
+      })
+  })
 })
